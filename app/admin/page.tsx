@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getProjects } from '@/lib/store';
 import { deleteProjectAction } from '@/lib/actions';
 
@@ -43,6 +44,22 @@ export default async function AdminDashboard() {
                                 Edit
                             </Link>
                         </div>
+
+                        {/* Project Image */}
+                        {project.images && project.images.length > 0 ? (
+                            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
+                                <Image
+                                    src={project.images[0]}
+                                    alt={project.title}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-full aspect-video rounded-lg bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                                <span className="text-white/20 text-3xl font-bold">{project.title[0]}</span>
+                            </div>
+                        )}
 
                         <h3 className="text-xl font-bold mb-2">{project.title}</h3>
                         <p className="text-sm text-white/60 line-clamp-2 mb-4">{project.shortDesc}</p>
