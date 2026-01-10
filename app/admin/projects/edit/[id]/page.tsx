@@ -117,7 +117,11 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
                         accept="image/*"
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-white/30 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white file:text-black hover:file:bg-white/90"
                     />
-                    <p className="text-xs text-white/40 mt-2">Upload a new image to replace the current one.</p>
+                    <p className="text-xs text-white/40 mt-2">
+                        Upload a new image to replace the current one.
+                        <br />
+                        <span className="text-white/30">Recommended: 1920x1080. Min: 800x600. Max: 5MB.</span>
+                    </p>
                 </div>
 
                 <div className="col-span-2">
