@@ -1,0 +1,250 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import fs from 'fs/promises';
+import path from 'path';
+import { getAdminCredentials, getProjects, saveProjects, updateAdminCredentials, updateSettings, Settings } from './store';
+import { login as authLogin, logout as authLogout } from './auth';
+import { Project } from './data';
+
+export async function loginAction(prevState: any, formData: FormData) {
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
+
+    const creds = await getAdminCredentials();
+
+    if (username === creds.username && password === creds.password) {
+        await authLogin(formData);
+        redirect('/admin');
+    } else {
+        return { error: 'Invalid credentials' };
+    }
+}
+
+export async function logoutAction() {
+    await authLogout();
+    redirect('/admin/login');
+}
+
+export async function addProjectAction(formData: FormData) {
+    const projects = await getProjects();
+
+    const techStackString = formData.get('techStack') as string;
+    const techStack = techStackString.split(',').map(t => t.trim()).filter(Boolean);
+
+    // Handle Image Upload
+    const imageFile = formData.get('image') as File;
+    let imagePath = '';
+
+    if (imageFile && imageFile.size > 0) {
+        try {
+            const buffer = Buffer.from(await imageFile.arrayBuffer());
+            const fileName = `${formData.get('slug')}-${Date.now()}-${imageFile.name}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'projects');
+
+            // Ensure directory exists
+            await fs.mkdir(uploadDir, { recursive: true });
+
+            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            imagePath = `/projects/${fileName}`;
+        } catch (error) {
+            console.error('Image upload failed:', error);
+        }
+    }
+
+    const newProject: Project = {
+        id: crypto.randomUUID(),
+        title: formData.get('title') as string,
+        slug: formData.get('slug') as string,
+        shortDesc: formData.get('shortDesc') as string,
+        fullDesc: formData.get('fullDesc') as string,
+        status: formData.get('status') as any,
+        techStack: techStack,
+        githubUrl: formData.get('githubUrl') as string,
+        images: imagePath ? [imagePath] : [],
+        features: [],
+        specs: []
+    };
+
+    projects.push(newProject);
+    await saveProjects(projects);
+    redirect('/admin');
+}
+
+export async function deleteProjectAction(id: string) {
+    const projects = await getProjects();
+    const updated = projects.filter(p => p.id !== id);
+    await saveProjects(updated);
+    redirect('/admin');
+}
+
+export async function updateCredentialsAction(formData: FormData) {
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
+
+    await updateAdminCredentials({ username, password });
+    await authLogout();
+    redirect('/admin/login');
+}
+
+export async function fetchGitHubRepoAction(repoUrl: string) {
+    try {
+        // Extract owner and repo from URL
+        // Format: https://github.com/owner/repo or https://github.com/owner/repo.git
+        const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
+
+        if (!match) {
+            return { error: 'Invalid GitHub URL format. Use: https://github.com/username/repo' };
+        }
+
+        const [, owner, repo] = match;
+
+        // Fetch from GitHub API
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Portfolio-Admin'
+            },
+            cache: 'no-store'
+        });
+
+        if (response.status === 404) {
+            return { error: 'Repository not found. Make sure the repository is public and the URL is correct.' };
+        }
+
+        if (response.status === 403) {
+            return { error: 'GitHub API rate limit exceeded. Please try again later or use manual entry.' };
+        }
+
+        if (!response.ok) {
+            return { error: `GitHub API error: ${response.status}` };
+        }
+
+        const data = await response.json();
+
+        // Extract relevant information
+        return {
+            success: true,
+            data: {
+                title: data.name.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+                slug: data.name.toLowerCase(),
+                shortDesc: data.description || 'No description available',
+                fullDesc: data.description || 'No description available',
+                techStack: data.language ? [data.language, ...(data.topics || [])] : (data.topics || []),
+                githubUrl: data.html_url,
+            }
+        };
+    } catch (error) {
+        console.error('GitHub fetch error:', error);
+        return { error: 'Failed to fetch repository data. Please check your internet connection.' };
+    }
+}
+
+export async function updateSettingsAction(formData: FormData) {
+    const settings: Settings = {
+        scrollingText: {
+            section0: {
+                heading: formData.get('section0_heading') as string,
+                description: formData.get('section0_description') as string || ''
+            },
+            section30: {
+                heading: formData.get('section30_heading') as string,
+                description: formData.get('section30_description') as string || ''
+            },
+            section60: {
+                heading: formData.get('section60_heading') as string,
+                description: formData.get('section60_description') as string || ''
+            },
+            section90: {
+                heading: formData.get('section90_heading') as string,
+                description: formData.get('section90_description') as string || ''
+            }
+        },
+        stackTechnology: JSON.parse(formData.get('stackTechnology') as string)
+    };
+
+    await updateSettings(settings);
+    redirect('/admin/content?success=true');
+}
+
+export async function fetchGitHubReadmeAction(repoUrl: string) {
+    try {
+        const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
+
+        if (!match) {
+            return { error: 'Invalid GitHub URL format. Use: https://github.com/username/repo' };
+        }
+
+        const [, owner, repo] = match;
+
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Portfolio-Admin'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            return { error: 'Failed to fetch README. It might not exist or the repo is private.' };
+        }
+
+        const data = await response.json();
+        const content = Buffer.from(data.content, 'base64').toString('utf-8');
+
+        return { success: true, content };
+    } catch (error) {
+        console.error('GitHub README fetch error:', error);
+        return { error: 'Failed to fetch README data.' };
+    }
+}
+
+export async function updateProjectAction(id: string, formData: FormData) {
+    const projects = await getProjects();
+    const existingProjectIndex = projects.findIndex(p => p.id === id);
+
+    if (existingProjectIndex === -1) {
+        throw new Error('Project not found');
+    }
+
+    const existingProject = projects[existingProjectIndex];
+
+    const techStackString = formData.get('techStack') as string;
+    const techStack = techStackString.split(',').map(t => t.trim()).filter(Boolean);
+
+    // Handle Image Upload
+    const imageFile = formData.get('image') as File;
+    let imagePath = existingProject.images && existingProject.images.length > 0 ? existingProject.images[0] : '';
+
+    if (imageFile && imageFile.size > 0) {
+        try {
+            const buffer = Buffer.from(await imageFile.arrayBuffer());
+            const fileName = `${formData.get('slug')}-${Date.now()}-${imageFile.name}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'projects');
+
+            // Ensure directory exists
+            await fs.mkdir(uploadDir, { recursive: true });
+
+            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            imagePath = `/projects/${fileName}`;
+        } catch (error) {
+            console.error('Image upload failed:', error);
+        }
+    }
+
+    const updatedProject: Project = {
+        ...existingProject,
+        title: formData.get('title') as string,
+        slug: formData.get('slug') as string,
+        shortDesc: formData.get('shortDesc') as string,
+        fullDesc: formData.get('fullDesc') as string,
+        status: formData.get('status') as any,
+        techStack: techStack,
+        githubUrl: formData.get('githubUrl') as string,
+        images: imagePath ? [imagePath] : [],
+    };
+
+    projects[existingProjectIndex] = updatedProject;
+    await saveProjects(projects);
+    redirect('/admin');
+}

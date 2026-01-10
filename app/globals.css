@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 3.9%;
+    /* #0A0A0A */
+    --foreground: 0 0% 98%;
+  }
+
+  body {
+    background-color: theme('colors.background');
+    color: theme('colors.white');
+    min-height: 100vh;
+    font-feature-settings: "rlig" 1, "calt" 1;
+
+  }
+}
