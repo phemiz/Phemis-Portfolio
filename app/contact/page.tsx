@@ -10,11 +10,11 @@ export default function ContactPage() {
             <div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
                 <section className="mb-16">
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">
-                        Let's Connect.
+                        Let&apos;s Connect.
                     </h1>
                     <p className="text-xl md:text-2xl text-white/60 leading-relaxed mb-12">
                         Interested in collaborating on a project or discussing opportunities?
-                        I'd love to hear from you.
+                        I&apos;d love to hear from you.
                     </p>
                 </section>
 

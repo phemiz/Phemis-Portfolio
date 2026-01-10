@@ -18,8 +18,8 @@ export default function TermsOfServicePage() {
                     <section>
                         <h2 className="text-3xl font-bold mb-4">Agreement to Terms</h2>
                         <p className="text-white/70 leading-relaxed">
-                            These Terms of Service ("Terms") govern your access to and use of Phemis Portfolio's website
-                            (the "Service"). By accessing or using the Service, you agree to be bound by these Terms. If you
+                            These Terms of Service (&quot;Terms&quot;) govern your access to and use of Phemis Portfolio&apos;s website
+                            (the &quot;Service&quot;). By accessing or using the Service, you agree to be bound by these Terms. If you
                             disagree with any part of the terms, you may not access the Service.
                         </p>
                     </section>
@@ -87,7 +87,7 @@ export default function TermsOfServicePage() {
                     <section>
                         <h2 className="text-3xl font-bold mb-4">Disclaimer of Warranties</h2>
                         <p className="text-white/70 leading-relaxed mb-4">
-                            The Service is provided on an "AS IS" and "AS AVAILABLE" basis. We make no warranties, expressed
+                            The Service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. We make no warranties, expressed
                             or implied, regarding:
                         </p>
                         <ul className="list-disc list-inside text-white/70 space-y-2 ml-4">
@@ -148,7 +148,7 @@ export default function TermsOfServicePage() {
                         <h2 className="text-3xl font-bold mb-4">Changes to Terms</h2>
                         <p className="text-white/70 leading-relaxed">
                             We reserve the right to modify or replace these Terms at any time at our sole discretion. If a
-                            revision is material, we will provide at least 30 days' notice prior to any new terms taking
+                            revision is material, we will provide at least 30 days&apos; notice prior to any new terms taking
                             effect. What constitutes a material change will be determined at our sole discretion. By
                             continuing to access or use our Service after revisions become effective, you agree to be bound
                             by the revised terms.

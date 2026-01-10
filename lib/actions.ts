@@ -7,18 +7,59 @@ import { getAdminCredentials, getProjects, saveProjects, updateAdminCredentials,
 import { login as authLogin, logout as authLogout } from './auth';
 import { Project } from './data';
 
+import bcrypt from 'bcryptjs';
+
 export async function loginAction(prevState: any, formData: FormData) {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
 
     const creds = await getAdminCredentials();
 
-    if (username === creds.username && password === creds.password) {
-        await authLogin(formData);
-        redirect('/admin');
-    } else {
-        return { error: 'Invalid credentials' };
+    if (username === creds.username) {
+        // Handle migration from plain text if needed, or assume hash
+        const isValid = await bcrypt.compare(password, creds.password);
+        // Fallback for first login if we haven't migrated yet (though plan says we should migrate)
+        // Let's perform a smart check: if matches plain text, re-hash and save? 
+        // OR just compare.
+        // For security, if it's not a hash (e.g. "admin"), bcrypt.compare will return false.
+        // I will implement a migration check: if creds.password is "admin", allow it but update it?
+        // Actually, let's keep it simple: Compare.
+        // But wait, the current admin.json has "admin". bcrypt.compare("admin", "admin") is false.
+        // I need to handle the first login case.
+
+        let valid = false;
+        try {
+            valid = await bcrypt.compare(password, creds.password);
+        } catch (e) {
+            // Check if it's plaintext "admin"
+            if (creds.password === password) {
+                valid = true;
+                // Auto-migrate to hash
+                const hashed = await bcrypt.hash(password, 10);
+                await updateAdminCredentials({ username, password: hashed });
+            }
+        }
+
+        // Simpler approach:
+        // if (creds.password === password) (legacy plaintext)
+        // else await bcrypt.compare(password, creds.password)
+
+        if (creds.password === password) {
+            // Legacy plain text match
+            const hashed = await bcrypt.hash(password, 10);
+            await updateAdminCredentials({ ...creds, password: hashed });
+            valid = true;
+        } else {
+            valid = await bcrypt.compare(password, creds.password);
+        }
+
+        if (valid) {
+            await authLogin(formData);
+            redirect('/admin');
+        }
     }
+
+    return { error: 'Invalid credentials' };
 }
 
 export async function logoutAction() {
@@ -82,7 +123,8 @@ export async function updateCredentialsAction(formData: FormData) {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
 
-    await updateAdminCredentials({ username, password });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await updateAdminCredentials({ username, password: hashedPassword });
     await authLogout();
     redirect('/admin/login');
 }

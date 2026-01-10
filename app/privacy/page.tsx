@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
                     <section>
                         <h2 className="text-3xl font-bold mb-4">Introduction</h2>
                         <p className="text-white/70 leading-relaxed">
-                            Welcome to Phemis Portfolio ("we," "our," or "us"). This Privacy Policy explains how we collect,
+                            Welcome to Phemis Portfolio (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). This Privacy Policy explains how we collect,
                             use, disclose, and safeguard your information when you visit our portfolio website. Please read
                             this privacy policy carefully. If you do not agree with the terms of this privacy policy, please
                             do not access the site.
@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-3xl font-bold mb-4">Children's Privacy</h2>
+                        <h2 className="text-3xl font-bold mb-4">Children&apos;s Privacy</h2>
                         <p className="text-white/70 leading-relaxed">
                             Our website is not intended for children under the age of 13. We do not knowingly collect
                             personally identifiable information from children under 13. If you are a parent or guardian and
@@ -137,7 +137,7 @@ export default function PrivacyPolicyPage() {
                         <h2 className="text-3xl font-bold mb-4">Changes to This Privacy Policy</h2>
                         <p className="text-white/70 leading-relaxed">
                             We may update our Privacy Policy from time to time. We will notify you of any changes by posting
-                            the new Privacy Policy on this page and updating the "Last updated" date. You are advised to
+                            the new Privacy Policy on this page and updating the &quot;Last updated&quot; date. You are advised to
                             review this Privacy Policy periodically for any changes.
                         </p>
                     </section>
